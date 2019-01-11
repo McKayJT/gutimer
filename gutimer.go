@@ -1,10 +1,11 @@
 package main
+
 import (
 	"flag"
 	"fmt"
+	"github.com/pkg/term"
 	"os"
 	"time"
-	"github.com/pkg/term"
 )
 
 type Mode int
@@ -18,11 +19,10 @@ const (
 
 type Flags struct {
 	verbose bool
-	quiet bool
+	quiet   bool
 }
 
 var flags = Flags{}
-
 
 func main() {
 	mode, duration := parseFlags()
@@ -46,14 +46,20 @@ func runTimer(mode Mode, duration time.Duration, c chan byte) {
 	tk := time.NewTicker(time.Millisecond * 10)
 	defer tk.Stop()
 
-	LOOP: for {
+LOOP:
+	for {
 		select {
 		case t := <-tk.C:
 			d := t.Sub(start)
-			if d > duration { break LOOP }
+			if d > duration {
+				break LOOP
+			}
 			fmt.Printf("\rElapsed time: %v    ", d.Round(time.Millisecond))
 		case char := <-c:
-			if char == 'Q' || char == 'q' { duration = time.Since(start); break LOOP }
+			if char == 'Q' || char == 'q' {
+				duration = time.Since(start)
+				break LOOP
+			}
 		}
 	}
 	fmt.Printf("\a\rElapsed time: %v    \n", duration)
@@ -85,13 +91,20 @@ func readStdin(c chan byte) {
 			ret = 1
 			goto EXIT
 		}
-		if flags.verbose { fmt.Printf("read %q from stdin\n", b[0]) }
-		if b[0] == '\x04' { goto EXIT } // exit if C-d recieved
+		if flags.verbose {
+			fmt.Printf("read %q from stdin\n", b[0])
+		}
+		// exit if C-d recieved
+		if b[0] == '\x04' {
+			goto EXIT
+		}
 		c <- b[0]
 	}
 
-	EXIT:
-	if t != nil { t.Restore() }
+EXIT:
+	if t != nil {
+		t.Restore()
+	}
 	os.Exit(ret)
 }
 
