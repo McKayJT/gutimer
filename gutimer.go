@@ -36,33 +36,48 @@ func main() {
 	runTimer(mode, duration, c)
 }
 
-// TODO: add other modes that aren't timer
+// TODO: add countdown mode
 func runTimer(mode Mode, duration time.Duration, c chan byte) {
-	if mode != TIMER {
-		fmt.Println("Only timer mode is supported!")
+	if mode != TIMER && mode != STOPWATCH {
+		fmt.Println("Countdown mode is not supported!")
 		return
 	}
 	start := time.Now()
+	if mode == STOPWATCH {
+		duration = 1<<63 - 1 // duration is really an int64
+	}
+	pause := false
 	tk := time.NewTicker(time.Millisecond * 10)
 	defer tk.Stop()
 
 LOOP:
-	for {
+	for d := time.Since(start); ; {
 		select {
 		case t := <-tk.C:
-			d := t.Sub(start)
+			if pause {
+				continue
+			}
+			d = t.Sub(start)
 			if d > duration {
 				break LOOP
 			}
 			fmt.Printf("\rElapsed time: %v    ", d.Round(time.Millisecond))
 		case char := <-c:
 			if char == 'Q' || char == 'q' {
-				duration = time.Since(start)
+				duration = d
 				break LOOP
+			}
+			if mode == STOPWATCH && char == ' ' {
+				if !pause {
+					pause = true
+				} else {
+					start = time.Now().Add(-d)
+					pause = false
+				}
 			}
 		}
 	}
-	fmt.Printf("\a\rElapsed time: %v    \n", duration)
+	fmt.Printf("\a\rElapsed time: %v    \n", duration.Round(time.Millisecond))
 }
 
 func readStdin(c chan byte) {
