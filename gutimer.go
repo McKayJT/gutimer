@@ -96,14 +96,29 @@ LOOP:
 	return 0
 }
 
+func printDuration(duration time.Duration) string {
+	hours := duration.Truncate(time.Hour)
+	duration = duration - hours
+	hours = hours / time.Hour
+	minutes := duration.Truncate(time.Minute)
+	duration = duration - minutes
+	minutes = minutes / time.Minute
+	seconds := duration.Truncate(time.Second)
+	duration = duration - seconds
+	seconds = seconds / time.Second
+	milliseconds := duration.Truncate(time.Millisecond) / time.Millisecond
+
+	return fmt.Sprintf("[%2.2d:%2.2d:%2.2d.%3.3d]", hours, minutes, seconds, milliseconds)
+}
+
 func printElapsed(mode Mode, total time.Duration, duration time.Duration) {
 	switch mode {
 	case STOPWATCH:
 		fallthrough
 	case TIMER:
-		fmt.Printf("\rElapsed time: %v    ", duration.Round(time.Millisecond))
+		fmt.Printf("\rElapsed time: %s", printDuration(duration))
 	case COUNTDOWN:
-		fmt.Printf("\rTime Remaining: %v    ", (total - duration).Round(time.Millisecond))
+		fmt.Printf("\rTime Remaining: %s", printDuration(total-duration))
 	}
 }
 
