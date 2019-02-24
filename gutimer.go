@@ -106,9 +106,9 @@ func printDuration(duration time.Duration) string {
 	seconds := duration.Truncate(time.Second)
 	duration = duration - seconds
 	seconds = seconds / time.Second
-	milliseconds := duration.Truncate(time.Millisecond) / time.Millisecond
+	milliseconds := duration.Truncate(time.Millisecond) / (time.Millisecond * 10)
 
-	return fmt.Sprintf("[%2.2d:%2.2d:%2.2d.%3.3d]", hours, minutes, seconds, milliseconds)
+	return fmt.Sprintf("[%2.2d:%2.2d:%2.2d.%2.2d]", hours, minutes, seconds, milliseconds)
 }
 
 func printElapsed(mode Mode, total time.Duration, duration time.Duration) {
